@@ -13,9 +13,10 @@ SoTSequenceGrabber::SoTSequenceGrabber( VisionSystem *vs, string sandbox )
 :Plugin( vs, "sot-sequence-grabber", sandbox ), 
  XmlRpcServerMethod("SoTSequenceGrabber", 0),
  m_close(false), m_started(false), m_frame(0), 
- is_mono(true), m_cameras(0), m_images_mono(0), m_images_rgb(0),
+ is_mono(false), m_cameras(0), m_images_mono(0), m_images_rgb(0),
  m_coshell("hrp2010c", 2809)
 {
+    m_coshell.Initialize();
 }
 
 SoTSequenceGrabber::~SoTSequenceGrabber() {
@@ -191,13 +192,6 @@ void SoTSequenceGrabber::execute(XmlRpcValue & params, XmlRpcValue & result)
 
 void SoTSequenceGrabber::save_images_loop_mono()
 {
-    {
-        std::stringstream fname;
-        fname << get_sandbox()  << "/sot_init-" << setfill('0') << setw(6) << m_frame;
-        std::ofstream fs(fname.str().c_str());
-        fs << m_coshell.ExecuteACommand("signalTime sot.control");
-        fs.close();
-    }
     m_started = true;
     while(!m_close)
     {
@@ -209,7 +203,8 @@ void SoTSequenceGrabber::save_images_loop_mono()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            filename << get_sandbox()  << "/" << m_images_mono[i].first << "/" << setfill('0') << setw(6) << m_frame << ".bin";
+            std::string sot_iter = m_coshell.ExecuteACommand("signalTime sot.control");
+            filename << get_sandbox() << "/" << m_images_rgb[i].first << "/" << setfill('0') << setw(8) << sot_iter.substr(0, sot_iter.size() - 1);
             serialize(filename.str(), *(m_images_mono[i].second));
             delete m_images_mono[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)
@@ -233,7 +228,8 @@ void SoTSequenceGrabber::save_images_loop_rgb()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            filename << get_sandbox()  << "/" << m_images_rgb[i].first << "/" << setfill('0') << setw(6) << m_frame << ".bin";
+            std::string sot_iter = m_coshell.ExecuteACommand("signalTime sot.control");
+            filename << get_sandbox() << "/" << m_images_rgb[i].first << "/" << setfill('0') << setw(8) << sot_iter.substr(0, sot_iter.size() - 1);
             serialize(filename.str(), *(m_images_rgb[i].second));
             delete m_images_rgb[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)
