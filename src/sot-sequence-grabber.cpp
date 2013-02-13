@@ -207,7 +207,7 @@ void SoTSequenceGrabber::save_images_loop_mono()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            filename << get_sandbox() << "/" << m_images_mono[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_mono[i].first.sot_iter;
+            filename << get_sandbox() << "/" << m_images_mono[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_mono[i].first.sot_iter << ".bin";
             serialize(filename.str(), *(m_images_mono[i].second));
             delete m_images_mono[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)
@@ -231,7 +231,7 @@ void SoTSequenceGrabber::save_images_loop_rgb()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            filename << get_sandbox() << "/" << m_images_rgb[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_rgb[i].first.sot_iter;
+            filename << get_sandbox() << "/" << m_images_rgb[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_rgb[i].first.sot_iter << ".bin";
             serialize(filename.str(), *(m_images_rgb[i].second));
             delete m_images_rgb[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)
