@@ -97,13 +97,17 @@ void SoTSequenceGrabber::loop_fct() {
 
     if(m_started)
     {
+        std::stringstream ss;
+        ss << m_coshell.ExecuteACommand("signalTime sot.control");
+        unsigned int sot_iter;
+        ss >> sot_iter;
         for(unsigned int i = 0; i < m_cameras.size(); ++i)
         {
             if(is_mono)
             {
                 vision::Image<unsigned char, vision::MONO> * img = dequeue_image< Image<unsigned char, vision::MONO> > (m_cameras[i]);
 
-                m_images_mono.push_back(make_pair(m_cameras[i]->get_name(), new vision::Image<unsigned char, vision::MONO>(*img)));
+                m_images_mono.push_back(make_pair(CamAndIter(m_cameras[i]->get_name(), sot_iter), new vision::Image<unsigned char, vision::MONO>(*img)));
 
                 enqueue_image(m_cameras[i], img);
             }
@@ -111,7 +115,7 @@ void SoTSequenceGrabber::loop_fct() {
             {
                 vision::Image<uint32_t, vision::RGB> * img = dequeue_image< Image<uint32_t, vision::RGB> > (m_cameras[i]);
 
-                m_images_rgb.push_back(make_pair(m_cameras[i]->get_name(), new vision::Image<uint32_t, vision::RGB>(*img)));
+                m_images_rgb.push_back(make_pair(CamAndIter(m_cameras[i]->get_name(), sot_iter), new vision::Image<uint32_t, vision::RGB>(*img)));
 
                 enqueue_image(m_cameras[i], img);
             }
@@ -203,8 +207,7 @@ void SoTSequenceGrabber::save_images_loop_mono()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            std::string sot_iter = m_coshell.ExecuteACommand("signalTime sot.control");
-            filename << get_sandbox() << "/" << m_images_rgb[i].first << "/" << setfill('0') << setw(8) << sot_iter.substr(0, sot_iter.size() - 1);
+            filename << get_sandbox() << "/" << m_images_mono[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_mono[i].first.sot_iter;
             serialize(filename.str(), *(m_images_mono[i].second));
             delete m_images_mono[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)
@@ -228,8 +231,7 @@ void SoTSequenceGrabber::save_images_loop_rgb()
         for(size_t i = m_cameras.size() * m_frame; i < n; ++i)
         {
             std::stringstream filename;
-            std::string sot_iter = m_coshell.ExecuteACommand("signalTime sot.control");
-            filename << get_sandbox() << "/" << m_images_rgb[i].first << "/" << setfill('0') << setw(8) << sot_iter.substr(0, sot_iter.size() - 1);
+            filename << get_sandbox() << "/" << m_images_rgb[i].first.cam_name << "/" << setfill('0') << setw(8) << m_images_rgb[i].first.sot_iter;
             serialize(filename.str(), *(m_images_rgb[i].second));
             delete m_images_rgb[i].second;
             if(i % m_cameras.size() == m_cameras.size() - 1)

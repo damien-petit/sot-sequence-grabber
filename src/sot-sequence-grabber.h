@@ -18,6 +18,17 @@ using namespace visionsystem;
 using namespace configparser;
 using namespace XmlRpc;
 
+struct CamAndIter
+{
+    CamAndIter() : cam_name("undefined"), sot_iter(0) 
+    {}
+    CamAndIter(const std::string & s, unsigned int i)
+    : cam_name(s), sot_iter(i) 
+    {}
+    std::string cam_name;
+    unsigned int sot_iter;
+};
+
 class SoTSequenceGrabber : public Plugin, public WithConfigFile, public XmlRpcServerMethod 
 {
 
@@ -50,8 +61,8 @@ class SoTSequenceGrabber : public Plugin, public WithConfigFile, public XmlRpcSe
         bool is_mono;
 
         std::vector< Camera * > m_cameras;
-        std::vector< std::pair< std::string, vision::Image<unsigned char, vision::MONO> *> > m_images_mono; 
-        std::vector< std::pair< std::string, vision::Image<uint32_t, vision::RGB> *> > m_images_rgb; 
+        std::vector< std::pair< CamAndIter, vision::Image<unsigned char, vision::MONO> *> > m_images_mono; 
+        std::vector< std::pair< CamAndIter, vision::Image<uint32_t, vision::RGB> *> > m_images_rgb; 
 
         coshellbci::CoshellClient m_coshell;
 } ;
