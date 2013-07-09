@@ -29,45 +29,94 @@ struct CamAndIter
     unsigned int sot_iter;
 };
 
-class SoTSequenceGrabber : public Plugin, public WithConfigFile, public XmlRpcServerMethod 
+class SoTSequenceGrabber : public Plugin, public configparser::WithConfigFile, public XmlRpc::XmlRpcServerMethod
 {
 
-	public:
-		
-		SoTSequenceGrabber( VisionSystem *vs, string sandbox ) ;
-		~SoTSequenceGrabber() ;
+    public:
 
-		bool pre_fct()  ;
-		void preloop_fct() ;
-		void loop_fct() ;
-		bool post_fct() ;
+        SoTSequenceGrabber( VisionSystem *vs, std::string sandbox ) ;
+        ~SoTSequenceGrabber() ;
+
+        bool pre_fct()  ;
+        void preloop_fct() ;
+        void loop_fct() ;
+        bool post_fct() ;
 
         /* Method for XML-RPC call */
         /* Params should be start/stop string */
-        void execute(XmlRpcValue & params, XmlRpcValue & result); 
+        void execute(XmlRpc::XmlRpcValue & params, XmlRpc::XmlRpcValue & result);
 
-	private:
-		void parse_config_line( vector<string> &line ) ;
+    private:
+        void parse_config_line( std::vector<std::string> &line ) ;
 
-        void save_images_loop_mono();
-        void save_images_loop_rgb();
-
-        boost::thread * m_save_th; 
+        boost::thread * m_save_th_mono;
+        boost::thread * m_save_th_rgb;
+        boost::thread * m_save_th_depth;
+        unsigned int mono_count;
+        unsigned int rgb_count;
+        unsigned int depth_count;
         bool m_close;
 
         bool m_started;
-        unsigned int m_frame;
+        unsigned int m_frame_mono;
+        unsigned int m_frame_rgb;
+        unsigned int m_frame_depth;
 
-        bool is_mono;
+        enum ACQUISITION_MODE
+        {
+            ACQ_MONO = 1,
+            ACQ_RGB,
+            ACQ_DEPTH
+        };
 
-        std::vector< Camera * > m_cameras;
-        std::vector< std::pair< CamAndIter, vision::Image<unsigned char, vision::MONO> *> > m_images_mono; 
-        std::vector< std::pair< CamAndIter, vision::Image<uint32_t, vision::RGB> *> > m_images_rgb; 
+        ACQUISITION_MODE fcoding_to_acq(const FrameCoding & coding);
 
-        coshellbci::CoshellClient m_coshell;
+        struct CameraConfig
+        {
+            std::string name;
+            ACQUISITION_MODE mode;
+            Camera * cam;
+            CameraConfig(std::string s, ACQUISITION_MODE m, Camera * c)
+            : name(s), mode(m), cam(c) {}
+            CameraConfig() : name(""), mode(ACQ_MONO), cam(0) {}
+            ~CameraConfig() {}
+        };
+
+        std::vector< CameraConfig > m_cameras;
+        std::vector< std::pair< CamAndIter, vision::Image<unsigned char, vision::MONO> *> > m_images_mono;
+        std::vector< std::pair< CamAndIter, vision::Image<uint32_t, vision::RGB> *> > m_images_rgb;
+        std::vector< std::pair< CamAndIter, vision::Image<uint16_t, vision::DEPTH> *> > m_images_depth;
+
+        template< typename TImage >
+        void save_images_loop(const std::vector< std::pair< std::string, TImage *> > & images,
+            unsigned int camera_count, unsigned int & frame_count)
+        {
+            unsigned int treated_frames = images.size()/camera_count;
+            m_started = true;
+            while(!m_close)
+            {
+                while(!m_close && images.size() < camera_count * (treated_frames + 1))
+                {
+                    usleep(1000);
+                }
+                unsigned int n = images.size();
+                for(size_t i = camera_count * treated_frames; i < n; ++i)
+                {
+                    std::stringstream filename;
+                    filename << get_sandbox()  << "/" << images[i].first.cam_name << "/" << std::setfill('0') << std::setw(10) << images[i].sot_iter << ".bin";
+                    serialize(filename.str(), *(images[i].second));
+                    delete images[i].second;
+                    if(i % camera_count == camera_count - 1)
+                    {
+                        frame_count++;
+                        treated_frames++;
+                    }
+                }
+            }
+        }
+		
+		coshellbci::CoshellClient m_coshell;
 } ;
-
-
 
 PLUGIN( SoTSequenceGrabber ) 
 
