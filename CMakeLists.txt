@@ -66,7 +66,7 @@ add_library( "sot-sequence-grabber" SHARED ${sot-sequence-grabber_lib_src} ${sot
 
 target_link_libraries( "sot-sequence-grabber" ${VISIONSYSTEM_LIBRARIES}
 				     ${VISION_LIBRARIES} 
-                    coshell-bci
+                    coshell-client
                     )
 
 ### INSTAll

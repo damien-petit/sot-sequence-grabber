@@ -16,7 +16,7 @@ SoTSequenceGrabber::SoTSequenceGrabber( VisionSystem *vs, string sandbox )
  mono_count(false), rgb_count(false), depth_count(false),
  m_close(false), m_started(false),
  m_frame_mono(0), m_frame_rgb(0), m_frame_depth(0),
- m_cameras(0), m_images_mono(0), m_images_rgb(0), m_images_depth(0)
+ m_cameras(0), m_images_mono(0), m_images_rgb(0), m_images_depth(0),
  m_coshell("hrp2010c", 2809)
 {
     m_coshell.Initialize();
@@ -26,13 +26,13 @@ SoTSequenceGrabber::~SoTSequenceGrabber() {
 }
 
 bool SoTSequenceGrabber::pre_fct() {
-    std::string filename = get_sandbox() + std::string ( "/sequence-grabber.conf") ;
+    std::string filename = get_sandbox() + std::string ( "/sot-sequence-grabber.conf") ;
     try {
         read_config_file( filename.c_str() ) ;
     } catch ( std::string msg ) {
 
-        std::cout << "[SequenceGrabber] Could not read config file" << std::endl ;
-        std::cout << "[SequenceGrabber] Will grab all active cameras and guess best acquisition mode" << std::endl ;
+        std::cout << "[SoTSequenceGrabber] Could not read config file" << std::endl ;
+        std::cout << "[SoTSequenceGrabber] Will grab all active cameras and guess best acquisition mode" << std::endl ;
 
     }
 
@@ -103,27 +103,27 @@ void SoTSequenceGrabber::preloop_fct() {
         if(server)
         {
             server->AddMethod(this);
-            std::cout << "[SequenceGrabber] Found a XML-RPC server plugin" << std::endl;
-            std::cout << "[SequenceGrabber] Acquisition will start when requested via XML-RPC" << std::endl;
+            std::cout << "[SoTSequenceGrabber] Found a XML-RPC server plugin" << std::endl;
+            std::cout << "[SoTSequenceGrabber] Acquisition will start when requested via XML-RPC" << std::endl;
         }
     }
     catch(...)
     {
-        std::cout << "[SequenceGrabber] No XML-RPC server plugin registered to the server" << std::endl;
-        std::cout << "[SequenceGrabber] Will start acquisition right away !" << std::endl;
+        std::cout << "[SoTSequenceGrabber] No XML-RPC server plugin registered to the server" << std::endl;
+        std::cout << "[SoTSequenceGrabber] Will start acquisition right away !" << std::endl;
         if(mono_count)
         {
-            m_save_th_mono = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<unsigned char, vision::MONO> >,
+            m_save_th_mono = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<unsigned char, vision::MONO> >,
                                                 this, boost::cref(m_images_mono), mono_count, boost::ref(m_frame_mono)));
         }
         if(rgb_count)
         {
-            m_save_th_rgb = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<uint32_t, vision::RGB> >,
+            m_save_th_rgb = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<uint32_t, vision::RGB> >,
                                                 this, boost::cref(m_images_rgb), rgb_count, boost::ref(m_frame_rgb)));
         }
         if(depth_count)
         {
-            m_save_th_depth = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<uint16_t, vision::DEPTH> >,
+            m_save_th_depth = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<uint16_t, vision::DEPTH> >,
                                                 this, boost::cref(m_images_depth), depth_count, boost::ref(m_frame_depth)));
         }
     }
@@ -304,17 +304,17 @@ void SoTSequenceGrabber::execute(XmlRpcValue & params, XmlRpcValue & result)
         m_close = false;
         if(mono_count)
         {
-            m_save_th_mono = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<unsigned char, vision::MONO> >,
+            m_save_th_mono = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<unsigned char, vision::MONO> >,
                                                 this, boost::cref(m_images_mono), mono_count, boost::ref(m_frame_mono)));
         }
         if(rgb_count)
         {
-            m_save_th_rgb = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<uint32_t, vision::RGB> >,
+            m_save_th_rgb = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<uint32_t, vision::RGB> >,
                                                 this, boost::cref(m_images_rgb), rgb_count, boost::ref(m_frame_rgb)));
         }
         if(depth_count)
         {
-            m_save_th_depth = new boost::thread(boost::bind(&SequenceGrabber::save_images_loop< vision::Image<uint16_t, vision::DEPTH> >,
+            m_save_th_depth = new boost::thread(boost::bind(&SoTSequenceGrabber::save_images_loop< vision::Image<uint16_t, vision::DEPTH> >,
                                                 this, boost::cref(m_images_depth), depth_count, boost::ref(m_frame_depth)));
         }
     }

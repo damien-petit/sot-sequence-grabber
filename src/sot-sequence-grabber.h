@@ -1,5 +1,5 @@
-#ifndef SEQUENCE_GRABBER_H
-#define SEQUENCE_GRABBER_H
+#ifndef SOT_SEQUENCE_GRABBER_H
+#define SOT_SEQUENCE_GRABBER_H
 
 #include <configparser/configparser.h>
 
@@ -8,9 +8,10 @@
 
 #include <boost/thread.hpp>
 
-#include <coshell-bci/CoshellClient.h>
+#include <coshell-client/CoshellClient.h>
 
 #include <XmlRpc.h>
+#include <iomanip>
 
 using namespace std;
 using namespace vision;
@@ -88,7 +89,7 @@ class SoTSequenceGrabber : public Plugin, public configparser::WithConfigFile, p
         std::vector< std::pair< CamAndIter, vision::Image<uint16_t, vision::DEPTH> *> > m_images_depth;
 
         template< typename TImage >
-        void save_images_loop(const std::vector< std::pair< std::string, TImage *> > & images,
+        void save_images_loop(const std::vector< std::pair< CamAndIter, TImage *> > & images,
             unsigned int camera_count, unsigned int & frame_count)
         {
             unsigned int treated_frames = images.size()/camera_count;
@@ -103,7 +104,7 @@ class SoTSequenceGrabber : public Plugin, public configparser::WithConfigFile, p
                 for(size_t i = camera_count * treated_frames; i < n; ++i)
                 {
                     std::stringstream filename;
-                    filename << get_sandbox()  << "/" << images[i].first.cam_name << "/" << std::setfill('0') << std::setw(10) << images[i].sot_iter << ".bin";
+                    filename << get_sandbox()  << "/" << images[i].first.cam_name << "/" << std::setfill('0') << std::setw(10) << images[i].first.sot_iter << ".bin";
                     serialize(filename.str(), *(images[i].second));
                     delete images[i].second;
                     if(i % camera_count == camera_count - 1)
@@ -115,7 +116,7 @@ class SoTSequenceGrabber : public Plugin, public configparser::WithConfigFile, p
             }
         }
 		
-		coshellbci::CoshellClient m_coshell;
+		coshell::CoshellClient m_coshell;
 } ;
 
 PLUGIN( SoTSequenceGrabber ) 
