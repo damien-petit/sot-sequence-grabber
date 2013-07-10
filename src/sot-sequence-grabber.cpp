@@ -301,6 +301,7 @@ void SoTSequenceGrabber::execute(XmlRpcValue & params, XmlRpcValue & result)
     std::string what(params[0]);
     if(what == "start" && !m_started)
     {
+        std::cout << "[SequenceGrabber] XML-RPC request received start grabbing" << std::endl;
         m_close = false;
         if(mono_count)
         {
@@ -320,6 +321,7 @@ void SoTSequenceGrabber::execute(XmlRpcValue & params, XmlRpcValue & result)
     }
     if(what == "stop" && m_started)
     {
+        std::cout << "[SequenceGrabber] XML-RPC request received stop grabbing" << std::endl;
         m_started = false;
         m_close = true;
         if(m_save_th_mono)
